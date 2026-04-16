@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'core/network/kling_api_client.dart';
+import 'package:kling_app/core/enums/generation_state.dart';
+import 'package:kling_app/core/network/kling_api_client.dart';
+import 'package:kling_app/ui/widgets/generation_result.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,11 +13,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Kling Image Generator',
+      title: 'Генератор Kling',
       theme: ThemeData.dark().copyWith(
         colorScheme: ColorScheme.dark(
           primary: const Color(0xFF6366F1),
-          background: const Color(0xFF11111B),
           surface: const Color(0xFF1A1A23),
         ),
         scaffoldBackgroundColor: const Color(0xFF11111B),
@@ -25,8 +25,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-enum GenerationState { idle, loading, success, error }
 
 class ImageGenerationScreen extends StatefulWidget {
   const ImageGenerationScreen({super.key});
@@ -71,20 +69,20 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
     try {
       final taskId = await _apiClient.generateImage(prompt);
       String? imageUrl;
-      
+
       while (imageUrl == null) {
         await Future.delayed(const Duration(seconds: 2));
         final status = await _apiClient.getTaskStatus(taskId);
         final data = status['data'] as Map<String, dynamic>?;
         final taskStatus = data?['task_status'] as String?;
-        
+
         if (taskStatus == 'succeed') {
           final images = data?['task_result']?['images'] as List<dynamic>?;
           if (images != null && images.isNotEmpty) {
             imageUrl = images[0]['url'] as String?;
           }
         } else if (taskStatus == 'failed') {
-          throw Exception('Task failed');
+          throw Exception('Не удалось создать изображение');
         }
       }
 
@@ -104,7 +102,7 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kling Image Generator'),
+        title: const Text('Генератор Kling'),
         backgroundColor: const Color(0xFF1A1A23),
       ),
       body: Padding(
@@ -118,7 +116,7 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
               autofocus: true,
               enabled: true,
               decoration: InputDecoration(
-                hintText: 'Enter your prompt...',
+                hintText: 'Опишите изображение, которое хотите создать…',
                 filled: true,
                 fillColor: const Color(0xFF1A1A23),
                 border: OutlineInputBorder(
@@ -148,57 +146,19 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text('Generate'),
+                  : const Text('Сгенерировать'),
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: _buildContent(),
+              child: GenerationResultView(
+                state: _state,
+                imageUrl: _imageUrl,
+                error: _errorMessage,
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildContent() {
-    switch (_state) {
-      case GenerationState.idle:
-        return const Center(
-          child: Text(
-            'Enter a prompt to generate an image',
-            style: TextStyle(color: Colors.grey),
-          ),
-        );
-      case GenerationState.loading:
-        return const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Generating image...'),
-            ],
-          ),
-        );
-      case GenerationState.success:
-        if (_imageUrl != null) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              _imageUrl!,
-              fit: BoxFit.contain,
-            ),
-          );
-        }
-        return const Center(child: Text('No image'));
-      case GenerationState.error:
-        return Center(
-          child: Text(
-            'Error: $_errorMessage',
-            style: const TextStyle(color: Colors.red),
-            textAlign: TextAlign.center,
-          ),
-        );
-    }
   }
 }
