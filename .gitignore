@@ -58,3 +58,5 @@ lib/core/network/kling_config.dart
 lib/core/network/config/kling_api_config.dart
 .qoder/
 .qoder/
+env.txt
+DESIGN.md
