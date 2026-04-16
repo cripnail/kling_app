@@ -1,0 +1,5 @@
+class KlingApiConfig {
+  static const accessKey = 'YOUR_ACCESS_KEY_HERE';
+  static const secretKey = 'YOUR_SECRET_KEY_HERE';
+  static const baseUrl = 'https://api.klingai.com';
+}
