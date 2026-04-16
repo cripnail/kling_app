@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
-import 'package:kling_app/core/network/kling_config.dart';
+import 'package:kling_app/core/network/config/kling_api_config.dart';
 import 'package:kling_app/core/network/kling_exceptions.dart';
 export 'package:kling_app/core/network/kling_exceptions.dart';
 
