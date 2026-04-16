@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:kling_app/core/network/kling_config.dart';
 import 'package:kling_app/core/network/kling_exceptions.dart';
@@ -17,7 +16,6 @@ class KlingApiClient {
       'exp': (now + 3600).toInt(),
       'nbf': now.toInt(),
     };
-    if (kDebugMode) print('🔑 JWT_PAYLOAD: ${jsonEncode(payloadMap)}');
     final payload = jsonEncode(payloadMap);
     final encodedHeader = base64Url.encode(utf8.encode(header)).replaceAll('=', '');
     final encodedPayload = base64Url.encode(utf8.encode(payload)).replaceAll('=', '');
@@ -68,7 +66,6 @@ class KlingApiClient {
       }
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        if (kDebugMode) print('🔴 HTTP ERROR ${response.statusCode}: ${response.body}');
         throw KlingApiException('Ошибка сервера', statusCode: response.statusCode);
       }
 
@@ -81,7 +78,6 @@ class KlingApiClient {
   }
 
   Future<String> generateImage(String prompt) async {
-    if (kDebugMode) print('📡 REQUEST URL: ${KlingApiConfig.baseUrl}/v1/images/generations');
     final response = await _request('POST', '/v1/images/generations', body: {
       'prompt': prompt,
       'n': 1,
@@ -97,7 +93,6 @@ class KlingApiClient {
   }
 
   Future<Map<String, dynamic>> getTaskStatus(String taskId) async {
-    if (kDebugMode) print('📡 STATUS URL: ${KlingApiConfig.baseUrl}/v1/images/generations/$taskId');
     final response = await _request('GET', '/v1/images/generations/$taskId');
     return response;
   }
